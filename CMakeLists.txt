@@ -20,3 +20,4 @@ include_directories(./src)
 add_executable(CThreadPool
         ${CTP_SRC_LIST}
         tutorial.cpp)
+target_link_libraries(CThreadPool pthread)

@@ -2,8 +2,8 @@
 #include <iostream>
 #include <iterator>
 #include <utility>
-
-
+#include <thread>
+#include <future>
 class myClass {
 public:
     myClass() = default;
@@ -16,16 +16,31 @@ public:
         std::cout << "T&& i" << std::endl;
     }
 
-private:
+    myClass& operator=(myClass&& other) = default;
+
     int i;
+    std::string str;
+
+
 };
+
+int asyncTask()
+{
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::cout << "Task completed" << std::endl;
+    return -2;
+}
 
 int main()
 {
-    
-    
+
     myClass b{std::move(myClass())};
-    myClass a{myClass()};
-    
+    b.str = "abcdef";
+    myClass a = std::move(b);
+
+    std::cout << b.str << std::endl; 
+
+    std::future<int> res = std::async(asyncTask);
+
     return 0;
 }
