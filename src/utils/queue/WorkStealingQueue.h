@@ -6,8 +6,8 @@
 @Desc: 实现了一个包含盗取功能的安全队列
 ***************************/
 
-#ifndef _QWORKSTEALINGQUEUE_H
-#define _QWORKSTEALINGQUEUE_H
+#ifndef _WORKSTEALINGQUEUE_H
+#define _WORKSTEALINGQUEUE_H
 
 #include <deque>
 #include <basic/BasicInclude.h>
@@ -17,6 +17,16 @@
 #include <vector>
 #include "QueueObject.h"
 #include "basic/funcdef.h"
+
+/*
+保证任务尽量按插入顺序执行
+
+弹出操作：
+正常弹出 pop_front
+窃取弹出 pop_back
+
+插入操作： 均使用尾插
+*/
 
 KURAXII_NAMESPACE_BEGIN
 
@@ -29,7 +39,7 @@ class WorkStealingQueue : public QueueObject {
         {
             if (_lock.try_lock())
             {
-                _deque.emplace_front(std::forward<T>(task));
+                _deque.emplace_back(std::forward<T>(task));
                 _lock.unlock();
                 break;
             }
@@ -61,8 +71,9 @@ class WorkStealingQueue : public QueueObject {
             {
                 for (const auto &task : tasks)
                 {
-                    _deque.emplace_front(std::move(task));
+                    _deque.emplace_back(std::forward<T>(task));
                 }
+
                 _lock.unlock();
                 break;
             }
@@ -81,8 +92,9 @@ class WorkStealingQueue : public QueueObject {
         {
             for (const auto &task : tasks)
             {
-                _deque.emplace_back(std::move(task));
+                _deque.emplace_back(std::forward<T>(task));
             }
+            tasks.clear();
             _lock.unlock();
             result = false;
         }
@@ -90,27 +102,31 @@ class WorkStealingQueue : public QueueObject {
     }
 
     // 弹出节点 从头部进行
-    BOOL tryPop(T &task)
+    BOOL tryPop(T &&task)
     {
         bool result = false;
         if (!_deque.empty() && _lock.try_lock())
         {
-            task = std::forward<T>(_deque.front());
-            _deque.pop_front();
-            result = true;
+            if (!_deque.empty())
+            {
+                task = std::move(_deque.front());
+                _deque.pop_front();
+                result = true;
+            }
             _lock.unlock();
         }
+        return result;
     }
 
     // 从头部开始批量获取可执行任务信息
-    BOOL tryPop(std::vector<T> tasks, INT maxLocalBatchSize)
+    BOOL tryPop(std::vector<T> &tasks, INT maxLocalBatchSize)
     {
         BOOL result = false;
         if (!_deque.empty() && _lock.try_lock())
         {
             while (!_deque.empty() && maxLocalBatchSize--)
             {
-                tasks.emplace_back(std::forward<T>(_deque.front()));
+                tasks.emplace_back(std::move(_deque.front()));
                 _deque.pop_front();
                 result = true;
             }
@@ -127,7 +143,7 @@ class WorkStealingQueue : public QueueObject {
         {
             if (!_deque.empty())
             {
-                task = std::forward<T>(_deque.back());
+                task = std::move(_deque.back());
                 _deque.pop_back();
                 result = true;
             }

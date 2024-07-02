@@ -10,17 +10,23 @@ KURAXII_NAMESPACE_BEGIN
 // 只有默认优先级
 class TaskGroup {
 public:
-    TaskGroup(Task &&task)
+    TaskGroup() = default;
+
+    TaskGroup(KURAXII_MOVE_FUNCTION_REF func)
+    {
+        taskGroup.emplace_back(std::move(func));
+    }
+
+    TaskGroup(Task &&task) 
     {
         taskGroup.emplace_back(std::move(task));
     }
-    TaskGroup(TaskGroup &&other) : taskGroup(std::move(other.taskGroup))
+    TaskGroup(TaskGroup &&other) noexcept  : taskGroup(std::move(other.taskGroup))
     {
     }
 
-    TaskGroup &operator=(TaskGroup &&other)
+    TaskGroup &operator=(TaskGroup &&other) noexcept 
     {
-        auto a = &other;
         if (this != &other)
         {
             taskGroup = std::move(other.taskGroup);
@@ -33,12 +39,13 @@ public:
         taskGroup.emplace_back(std::move(task));
     }
 
-    void addTaskGroup(TaskGroup &&TaskGroup)
+    void addTaskGroup(TaskGroup &&other)
     {
-        for (const auto &it : TaskGroup.taskGroup)
+        for (auto &it : other.taskGroup)
         {
             taskGroup.emplace_back(std::move(it));
         }
+        other.taskGroup.clear();
     }
 
     NO_ALLOWED_COPY(TaskGroup)

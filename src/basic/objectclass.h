@@ -8,17 +8,6 @@ KURAXII_NAMESPACE_BEGIN
 class Object {
 public:
     explicit Object() = default;
-
-    virtual STATUS init()
-    {
-        return STATUS();
-    }
-
-    virtual STATUS destory()
-    {
-        return STATUS();
-    }
-
     virtual ~Object() = default;
 };
 
