@@ -39,8 +39,7 @@ public:
         if (!lock.owns_lock())
             return false;
 
-        while (!_queue.empty() && maxPoolBatchSize-- > 0)
-        {
+        while (!_queue.empty() && maxPoolBatchSize-- > 0) {
             values.emplace_back(std::move(_queue.front()));
             _queue.pop();
         }
@@ -49,17 +48,13 @@ public:
 
     void push(T &&value)
     {
-        while (true)
-        {
-            if (_mutex.try_lock())
-            {
+        while (true) {
+            if (_mutex.try_lock()) {
                 _queue.emplace(std::forward<T>(value));
                 _mutex.unlock();
                 _cv.notify_one();
                 break;
-            }
-            else
-            {
+            } else {
                 std::this_thread::yield();
             }
         }

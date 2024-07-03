@@ -9,14 +9,8 @@ KURAXII_NAMESPACE_BEGIN
 
 class ThreadPrimary : public ThreadObject {
 public:
-
-
-
-
-
 private:
-    WorkStealingQueue<Task> primary_process_queue;
-    WorkStealingQueue<Task> second_process_queue;
+
 };
 
 KURAXII_NAMESPACE_END

@@ -23,8 +23,7 @@ public:
     BOOL tryPop(T &value)
     {
         std::unique_lock<std::mutex> lock(_mutex, std::try_to_lock);
-        if (!lock.owns_lock() || _priority_queue.empty())
-        {
+        if (!lock.owns_lock() || _priority_queue.empty()) {
             return false;
         }
         value = std::move(_priority_queue.top());
@@ -39,8 +38,7 @@ public:
         if (!lock.owns_lock())
             return false;
 
-        while (!_priority_queue.empty() && maxPoolBatchSize-- > 0)
-        {
+        while (!_priority_queue.empty() && maxPoolBatchSize-- > 0) {
             values.emplace_back(std::move(_priority_queue.top()));
             _priority_queue.pop();
         }
@@ -49,17 +47,13 @@ public:
 
     void push(T &&value)
     {
-        while (true)
-        {
-            if (_mutex.try_lock())
-            {
+        while (true) {
+            if (_mutex.try_lock()) {
                 _priority_queue.emplace(std::forward<T>(value));
                 _mutex.unlock();
                 _cv.notify_one();
                 break;
-            }
-            else
-            {
+            } else {
                 std::this_thread::yield();
             }
         }

@@ -32,7 +32,7 @@ BitFieldColonSpacing: Both
 BraceWrapping:
   AfterCaseLabel: true
   AfterClass: false
-  AfterControlStatement: Always
+  AfterControlStatement: MultiLine
   AfterUnion: false
   AfterExternBlock: true
   AfterFunction: true
@@ -40,7 +40,7 @@ BraceWrapping:
   AfterObjCDeclaration: true
   AfterStruct: false
   BeforeCatch:     true
-  BeforeElse:      true
+  BeforeElse:      false
   BeforeLambdaBody: false
   BeforeWhile:     false
   IndentBraces:    false

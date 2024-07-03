@@ -24,7 +24,7 @@ public:
     // 移动构造
     Task(Task &&other) : _func(std::move(other._func)), _priority(other._priority)
     {
-        std::cout << "Task move structor" << std::endl;
+        std::cout << "Task move structor " << &_func << std::endl;
     }
 
     // 移动赋值运算符

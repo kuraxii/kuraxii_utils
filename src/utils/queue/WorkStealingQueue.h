@@ -9,6 +9,7 @@
 #ifndef _WORKSTEALINGQUEUE_H
 #define _WORKSTEALINGQUEUE_H
 
+#include <iostream>
 #include <deque>
 #include <basic/BasicInclude.h>
 #include <mutex>
@@ -32,67 +33,85 @@ KURAXII_NAMESPACE_BEGIN
 
 template <typename T>
 class WorkStealingQueue : public QueueObject {
+public:
+    WorkStealingQueue() = default;
+    ~WorkStealingQueue() = default;
+    NO_ALLOWED_COPY(WorkStealingQueue)
     // 插入队列
-    void push(T &&task)
+    void push(T &task)
     {
-        while (true)
-        {
-            if (_lock.try_lock())
-            {
+        while (true) {
+            if (_lock.try_lock()) {
                 _deque.emplace_back(std::forward<T>(task));
                 _lock.unlock();
                 break;
-            }
-            else
-            {
+            } else {
                 std::this_thread::yield();
             }
         }
     }
-    // 尝试插入队列
-    BOOL tryPush(T &&task)
+    void push(T &&task)
     {
+        while (true) {
+            if (_lock.try_lock()) {
+                _deque.emplace_back(std::forward<T>(task));
+                _lock.unlock();
+                break;
+            } else {
+                std::this_thread::yield();
+            }
+        }
+    }
+
+    // 插入一组信息  对于vector只支持移动
+    void push(std::vector<T> &tasks)
+    {
+        while (true) {
+            if (_lock.try_lock()) {
+                for (auto &task : tasks) {
+                    _deque.emplace_back(std::move<T>(task));
+                }
+                _lock.unlock();
+                break;
+            } else {
+                std::this_thread::yield();
+            }
+        }
+    }
+
+    // 尝试插入队列
+    BOOL tryPush(T &task)
+    {
+        std::cout << "trypush" << &task << std::endl;
         BOOL result = false;
-        if (_lock.try_lock())
-        {
+        if (_lock.try_lock()) {
             _deque.emplace_back(std::forward<T>(task));
             _lock.unlock();
             result = true;
         }
+
         return result;
     }
-
-    // 插入一组信息
-    void push(std::vector<T> &tasks)
+    BOOL tryPush(T &&task)
     {
-        while (true)
-        {
-            if (_lock.try_lock())
-            {
-                for (const auto &task : tasks)
-                {
-                    _deque.emplace_back(std::forward<T>(task));
-                }
-
-                _lock.unlock();
-                break;
-            }
-            else
-            {
-                std::this_thread::yield();
-            }
+        std::cout << "trypush" << &task << std::endl;
+        BOOL result = false;
+        if (_lock.try_lock()) {
+            _deque.emplace_back(std::forward<T>(task));
+            _lock.unlock();
+            result = true;
         }
+
+        return result;
     }
     // 尝试插入一组信息
     BOOL tryPush(std::vector<T> &tasks)
     {
         BOOL result = false;
 
-        if (_lock.try_lock())
-        {
-            for (const auto &task : tasks)
-            {
-                _deque.emplace_back(std::forward<T>(task));
+        if (_lock.try_lock()) {
+            for (const auto &task : tasks) {
+                _deque.emplace_back(std::move<T>(task));
             }
             tasks.clear();
             _lock.unlock();
@@ -102,13 +121,11 @@ class WorkStealingQueue : public QueueObject {
     }
 
     // 弹出节点 从头部进行
-    BOOL tryPop(T &&task)
+    BOOL tryPop(T &task)
     {
         bool result = false;
-        if (!_deque.empty() && _lock.try_lock())
-        {
-            if (!_deque.empty())
-            {
+        if (!_deque.empty() && _lock.try_lock()) {
+            if (!_deque.empty()) {
                 task = std::move(_deque.front());
                 _deque.pop_front();
                 result = true;
@@ -122,10 +139,8 @@ class WorkStealingQueue : public QueueObject {
     BOOL tryPop(std::vector<T> &tasks, INT maxLocalBatchSize)
     {
         BOOL result = false;
-        if (!_deque.empty() && _lock.try_lock())
-        {
-            while (!_deque.empty() && maxLocalBatchSize--)
-            {
+        if (!_deque.empty() && _lock.try_lock()) {
+            while (!_deque.empty() && maxLocalBatchSize--) {
                 tasks.emplace_back(std::move(_deque.front()));
                 _deque.pop_front();
                 result = true;
@@ -139,10 +154,8 @@ class WorkStealingQueue : public QueueObject {
     BOOL trySteal(T &task)
     {
         BOOL result = false;
-        if (!_deque.empty() && _lock.try_lock())
-        {
-            if (!_deque.empty())
-            {
+        if (!_deque.empty() && _lock.try_lock()) {
+            if (!_deque.empty()) {
                 task = std::move(_deque.back());
                 _deque.pop_back();
                 result = true;
@@ -155,10 +168,8 @@ class WorkStealingQueue : public QueueObject {
     BOOL trySteal(std::vector<T> &taskArr, INT maxStealBatchSize)
     {
         BOOL result = false;
-        if (!_deque.empty() && _lock.try_lock())
-        {
-            while (!_deque.empty() && maxStealBatchSize--)
-            {
+        if (!_deque.empty() && _lock.try_lock()) {
+            while (!_deque.empty() && maxStealBatchSize--) {
                 taskArr.emplace_back(std::move(_deque.front()));
                 _deque.pop_front();
                 result = true;
@@ -168,8 +179,11 @@ class WorkStealingQueue : public QueueObject {
         return result;
     }
 
-    WorkStealingQueue() = default;
-    NO_ALLOWED_COPY(WorkStealingQueue)
+    SIZE size()
+    {
+        std::unique_lock<std::mutex> lock(_lock);
+        return _deque.size();
+    }
 
 private:
     std::deque<T> _deque;

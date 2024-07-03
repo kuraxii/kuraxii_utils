@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 
 
-file(GLOB_RECURSE CTP_SRC_LIST "./src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "include/*.h")
 include_directories(./src)
 # 如果开启此宏定义，则CGraph执行过程中，不会在控制台打印任何信息
 # add_definitions(-D_CGRAPH_SILENCE_)

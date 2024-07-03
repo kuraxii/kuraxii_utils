@@ -14,7 +14,6 @@ class QueueObject : public Object {
 protected:
     std::mutex _mutex;
     std::condition_variable _cv;
-
 };
 
 KURAXII_NAMESPACE_END
