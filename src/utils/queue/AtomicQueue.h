@@ -21,7 +21,7 @@ public:
         _queue.pop();
     }
 
-    BOOL tryPop(T &value)
+    bool tryPop(T &value)
     {
         std::unique_lock<std::mutex> lock(_mutex, std::try_to_lock);
         if (!lock.owns_lock() || _queue.empty())
@@ -33,7 +33,7 @@ public:
     }
     // 弹出多个
 
-    BOOL tryPop(std::vector<T> &values, int maxPoolBatchSize)
+    bool tryPop(std::vector<T> &values, int maxPoolBatchSize)
     {
         std::unique_lock<std::mutex> lock(_mutex, std::try_to_lock);
         if (!lock.owns_lock())
@@ -44,6 +44,20 @@ public:
             _queue.pop();
         }
         return !values.empty();
+    }
+
+    void push(T &value)
+    {
+        while (true) {
+            if (_mutex.try_lock()) {
+                _queue.emplace(std::forward<T>(value));
+                _mutex.unlock();
+                _cv.notify_one();
+                break;
+            } else {
+                std::this_thread::yield();
+            }
+        }
     }
 
     void push(T &&value)
@@ -60,7 +74,7 @@ public:
         }
     }
 
-    BOOL empty()
+    bool empty()
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return _queue.empty();

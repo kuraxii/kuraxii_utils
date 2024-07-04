@@ -25,7 +25,6 @@ using INT = int32_t;
 using UINT = uint32_t;
 using INT64 = int64_t;
 using UINT64 = uint64_t;
-using BOOL = bool;
 using FLOAT = float;
 using DOUBLE = double;
 using CONSTSTR = const char *;

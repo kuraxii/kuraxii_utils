@@ -80,10 +80,10 @@ public:
     }
 
     // 尝试插入队列
-    BOOL tryPush(T &task)
+    bool tryPush(T &task)
     {
         std::cout << "trypush" << &task << std::endl;
-        BOOL result = false;
+        bool result = false;
         if (_lock.try_lock()) {
             _deque.emplace_back(std::forward<T>(task));
             _lock.unlock();
@@ -92,10 +92,10 @@ public:
 
         return result;
     }
-    BOOL tryPush(T &&task)
+    bool tryPush(T &&task)
     {
         std::cout << "trypush" << &task << std::endl;
-        BOOL result = false;
+        bool result = false;
         if (_lock.try_lock()) {
             _deque.emplace_back(std::forward<T>(task));
             _lock.unlock();
@@ -105,9 +105,9 @@ public:
         return result;
     }
     // 尝试插入一组信息
-    BOOL tryPush(std::vector<T> &tasks)
+    bool tryPush(std::vector<T> &tasks)
     {
-        BOOL result = false;
+        bool result = false;
 
         if (_lock.try_lock()) {
             for (const auto &task : tasks) {
@@ -121,7 +121,7 @@ public:
     }
 
     // 弹出节点 从头部进行
-    BOOL tryPop(T &task)
+    bool tryPop(T &task)
     {
         bool result = false;
         if (!_deque.empty() && _lock.try_lock()) {
@@ -136,9 +136,9 @@ public:
     }
 
     // 从头部开始批量获取可执行任务信息
-    BOOL tryPop(std::vector<T> &tasks, INT maxLocalBatchSize)
+    bool tryPop(std::vector<T> &tasks, INT maxLocalBatchSize)
     {
-        BOOL result = false;
+        bool result = false;
         if (!_deque.empty() && _lock.try_lock()) {
             while (!_deque.empty() && maxLocalBatchSize--) {
                 tasks.emplace_back(std::move(_deque.front()));
@@ -151,9 +151,9 @@ public:
     }
 
     // 窃取节点
-    BOOL trySteal(T &task)
+    bool trySteal(T &task)
     {
-        BOOL result = false;
+        bool result = false;
         if (!_deque.empty() && _lock.try_lock()) {
             if (!_deque.empty()) {
                 task = std::move(_deque.back());
@@ -165,9 +165,9 @@ public:
         return result;
     }
     // 批量窃取节点
-    BOOL trySteal(std::vector<T> &taskArr, INT maxStealBatchSize)
+    bool trySteal(std::vector<T> &taskArr, INT maxStealBatchSize)
     {
-        BOOL result = false;
+        bool result = false;
         if (!_deque.empty() && _lock.try_lock()) {
             while (!_deque.empty() && maxStealBatchSize--) {
                 taskArr.emplace_back(std::move(_deque.front()));

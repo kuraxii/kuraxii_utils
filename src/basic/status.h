@@ -20,12 +20,12 @@ public:
         return this->status;
     }
 
-    BOOL isOk() const
+    bool isOk() const
     {
         return this->status == STATUSCODE::STATUS_OK;
     }
 
-    BOOL isErr() const
+    bool isErr() const
     {
         return this->status == STATUSCODE::STATUS_ERR;
     }

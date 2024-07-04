@@ -2,8 +2,9 @@
 #define _THREADOBJECT_H
 
 #include <basic/BasicInclude.h>
-#include <utils/queue/QueueInclude.h>
-#include <utils/task/TaskInclude.h>
+#include <utils/queue/WorkStealingQueue.h>
+#include <utils/task/task.h>
+#include <utils/task/taskgroup.h>
 #include "ThreadConfig.h"
 #include <mutex>
 KURAXII_NAMESPACE_BEGIN
@@ -25,7 +26,7 @@ public:
 
     virtual void processTask()
     {
-        BOOL result = false;
+        bool result = false;
         static thread_local std::vector<Task> tasks;
         if (_config.getBatchTaskEnable()) {
             result = popTask(tasks, _config.getMaxTaskBatchSize());
@@ -65,13 +66,9 @@ public:
         }
     }
 
-    virtual bool popTask(Task &task)
-    {
-        return _primary_task_queue.tryPop(task) || _second_task_queue.tryPop(task);
-    }
     virtual bool popTask(std::vector<Task> &tasks, UINT taskNum)
     {
-        BOOL result = _primary_task_queue.tryPop(tasks, taskNum);
+        bool result = _primary_task_queue.tryPop(tasks, taskNum);
         INT size = taskNum - tasks.size();
         if (size > 0) {
             result |= _second_task_queue.tryPop(tasks, size);
@@ -86,13 +83,15 @@ public:
         }
         _cv.notify_one();
     }
-    virtual void pushTask(Task &task)
-    {
 
-        while (!(_second_task_queue.tryPush(task) || !_primary_task_queue.tryPush(task))) {
-            std::this_thread::yield();
+    virtual bool trySteal(std::vector<Task> &tasks)
+    {
+        bool result = _primary_task_queue.trySteal(tasks, _config.getTaskStealNum());
+        INT size = _config.getTaskStealNum() - tasks.size();
+        if (size > 0) {
+            result |= _second_task_queue.trySteal(tasks, size);
         }
-        _cv.notify_one();
+        return result;
     }
 
     // 显示销毁线程
@@ -109,21 +108,24 @@ public:
         reset();
     }
 
+    bool isThreadCreated()
+    {
+        return _is_init;
+    }
+
 protected:
-    BOOL _done = true;          // 是否线程是否借结束
-    BOOL _is_init = 0;          // 初始化状态
-    BOOL _is_running = 0;       // 是否正在执行
+    bool _done = true;          // 是否线程是否借结束
+    bool _is_init = 0;          // 初始化状态
+    bool _is_running = 0;       // 是否正在执行
     INT _type = 0;              // 线程类型 主 or 副
     UINT64 _total_task_num = 0; // 统计处理的线程数
-    ThreadConfig _config;
-    INT _cur_empty_epoch = 0; // 当前轮转次数
+    ThreadConfig _config;       // 线程配置
+    INT _cur_empty_epoch = 0;   // 当前轮转次数
     WorkStealingQueue<Task> _primary_task_queue;
     WorkStealingQueue<Task> _second_task_queue;
     std::condition_variable _cv; // 条件变量 唤醒线程
     std::mutex _mutex;
     std::thread _thread;
-    // AtomicQueue<Task>& _pool_task_queue;
-    // AtomicPriorityQueue<Task>& _pool_priority_task_queue;
 };
 
 KURAXII_NAMESPACE_END
