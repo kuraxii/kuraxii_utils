@@ -10,9 +10,14 @@ using KURAXII_DEFAULT_FUNCTION = std::function<void()>;
 using KURAXII_MOVE_FUNCTION_REF = std::function<void()> &&;
 
 /** 定义为不能赋值和拷贝的对象类型 */
-#define NO_ALLOWED_COPY(Type) \
-    Type(const Type &) = delete;    \
+#define NO_ALLOWED_COPY(Type)    \
+    Type(const Type &) = delete; \
     const Type &operator=(const Type &) = delete;
+
+#define NO_ALLOWED_COPY_AND_MOVE(Type) \
+    NO_ALLOWED_COPY(Type)              \
+    Type(Type &&rhs) = delete;         \
+    Type &operator=(Type &&rhs) = delete;
 
 KURAXII_NAMESPACE_END
 

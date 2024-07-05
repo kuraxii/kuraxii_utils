@@ -17,18 +17,17 @@ public:
         taskGroup.emplace_back(std::move(func));
     }
 
-    TaskGroup(Task &&task) 
+    TaskGroup(Task &&task)
     {
         taskGroup.emplace_back(std::move(task));
     }
-    TaskGroup(TaskGroup &&other) noexcept  : taskGroup(std::move(other.taskGroup))
+    TaskGroup(TaskGroup &&other) noexcept : taskGroup(std::move(other.taskGroup))
     {
     }
 
-    TaskGroup &operator=(TaskGroup &&other) noexcept 
+    TaskGroup &operator=(TaskGroup &&other) noexcept
     {
-        if (this != &other)
-        {
+        if (this != &other) {
             taskGroup = std::move(other.taskGroup);
         }
         return *this;
@@ -41,11 +40,15 @@ public:
 
     void addTaskGroup(TaskGroup &&other)
     {
-        for (auto &it : other.taskGroup)
-        {
+        for (auto &it : other.taskGroup) {
             taskGroup.emplace_back(std::move(it));
         }
         other.taskGroup.clear();
+    }
+
+    std::vector<Task> &getTasks()
+    {
+        return taskGroup;
     }
 
     NO_ALLOWED_COPY(TaskGroup)

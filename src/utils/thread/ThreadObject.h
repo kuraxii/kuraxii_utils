@@ -112,7 +112,7 @@ public:
     {
         return _is_init;
     }
-
+    NO_ALLOWED_COPY(ThreadObject)
 protected:
     bool _done = true;          // 是否线程是否借结束
     bool _is_init = 0;          // 初始化状态

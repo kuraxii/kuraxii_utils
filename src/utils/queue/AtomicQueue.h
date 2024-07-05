@@ -74,6 +74,22 @@ public:
         }
     }
 
+    void push(std::vector<T> &values)
+    {
+        while (true) {
+            if (_mutex.try_lock()) {
+                for (auto &value : values) {
+                    _queue.emplace(std::move(value));
+                }
+                _mutex.unlock();
+                _cv.notify_one();
+                break;
+            } else {
+                std::this_thread::yield();
+            }
+        }
+    }
+
     bool empty()
     {
         std::lock_guard<std::mutex> lock(_mutex);

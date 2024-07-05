@@ -5,8 +5,6 @@
 #include <future>
 #include <functional>
 #include <basic/BasicInclude.h>
-#include <utils/task/TaskInclude.h>
-#include <utils/queue/QueueInclude.h>
 #include <utils/thread/ThreadObject.h>
 #include <unistd.h>
 class myClass {
