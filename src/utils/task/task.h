@@ -21,14 +21,14 @@ public:
     }
 
     // 移动构造
-    Task(Task &&other) : _func(std::move(other._func)), _priority(other._priority), valid(true)
+    Task(Task &&other) noexcept : _func(std::move(other._func)), _priority(other._priority), valid(true)
     {
         assert(other.valid == true);
         other.valid = false;
     }
 
     // 移动赋值运算符
-    Task &operator=(Task &&other)
+    Task &operator=(Task &&other) noexcept
     {
         assert(other.valid == true);
         if (&other != this) {
@@ -44,6 +44,11 @@ public:
     {
         assert(valid == true);
         _func();
+    }
+    bool operator<(const Task &b) const
+    {
+        assert(valid == true);
+        return this->_priority < b._priority;
     }
 
     // clang-format off

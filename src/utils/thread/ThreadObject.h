@@ -71,14 +71,14 @@ public:
         bool result = _primary_task_queue.tryPop(tasks, taskNum);
         INT size = taskNum - tasks.size();
         if (size > 0) {
-            result |= _second_task_queue.tryPop(tasks, size);
+            result |= _normal_task_queue.tryPop(tasks, size);
         }
         return result;
     }
 
     virtual void pushTask(Task &&task)
     {
-        while (!(_second_task_queue.tryPush(std::move(task)) || !_primary_task_queue.tryPush(std::move(task)))) {
+        while (!(_normal_task_queue.tryPush(std::move(task)) || !_primary_task_queue.tryPush(std::move(task)))) {
             std::this_thread::yield();
         }
         _cv.notify_one();
@@ -89,7 +89,7 @@ public:
         bool result = _primary_task_queue.trySteal(tasks, _config.getTaskStealNum());
         INT size = _config.getTaskStealNum() - tasks.size();
         if (size > 0) {
-            result |= _second_task_queue.trySteal(tasks, size);
+            result |= _normal_task_queue.trySteal(tasks, size);
         }
         return result;
     }
@@ -114,16 +114,14 @@ public:
     }
     NO_ALLOWED_COPY(ThreadObject)
 protected:
-    bool _done = true;          // 是否线程是否借结束
-    bool _is_init = 0;          // 初始化状态
-    bool _is_running = 0;       // 是否正在执行
-    INT _type = 0;              // 线程类型 主 or 副
-    UINT64 _total_task_num = 0; // 统计处理的线程数
-    ThreadConfig _config;       // 线程配置
-    INT _cur_empty_epoch = 0;   // 当前轮转次数
-    WorkStealingQueue<Task> _primary_task_queue;
-    WorkStealingQueue<Task> _second_task_queue;
-    std::condition_variable _cv; // 条件变量 唤醒线程
+    bool _done = true;                           // 是否线程是否借结束
+    bool _is_init = false;                       // 初始化状态
+    bool _is_running = false;                    // 是否正在执行
+    ThreadConfig _config;                        // 线程配置
+    INT _cur_empty_epoch = 0;                    // 当前轮转次数
+    WorkStealingQueue<Task> _primary_task_queue; // 主任务队列
+    WorkStealingQueue<Task> _normal_task_queue;  // 副任务队列
+    std::condition_variable _cv;                 // 条件变量 唤醒线程
     std::mutex _mutex;
     std::thread _thread;
 };

@@ -7,6 +7,7 @@
 #include <basic/BasicInclude.h>
 #include <utils/thread/ThreadObject.h>
 #include <unistd.h>
+#include <utils/threadpool/ThreadPool.h>
 class myClass {
 public:
     myClass() = default;
@@ -55,7 +56,7 @@ int main()
     // res.get();
     unsigned int in = std::thread::hardware_concurrency();
     std::cout << in << std::endl;
-#else
+
     KURAXII::ThreadObject thread;
     KURAXII::Task t1 = {std::move(std::bind(func, 1, 2))};
     KURAXII::Task t2 = {std::move(std::bind(func, 5, 6))};
@@ -63,7 +64,13 @@ int main()
     thread.pushTask(std::move(t2));
     thread.init();
     sleep(1);
+#else
 
+    KURAXII::ThreadPool pool{};
+    KURAXII::Task t1 = {std::move(std::bind(func, 1, 2))};
+    pool.addTask(std::move(t1));
+
+    sleep(1);
 #endif
     return 0;
 }

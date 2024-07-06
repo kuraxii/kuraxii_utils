@@ -39,7 +39,12 @@ public:
             return false;
 
         while (!_priority_queue.empty() && maxPoolBatchSize-- > 0) {
-            values.emplace_back(std::move(_priority_queue.top()));
+            /*
+               const_reference top() const
+               top的返回值为 const ref 使用强转
+               https://stackoverflow.com/questions/20149471/move-out-element-of-std-priority-queue-in-c11
+               */
+            values.emplace_back(std::move(const_cast<T &>(_priority_queue.top())));
             _priority_queue.pop();
         }
         return !values.empty();
@@ -47,16 +52,12 @@ public:
 
     void push(T &&value)
     {
-        while (true) {
-            if (_mutex.try_lock()) {
-                _priority_queue.emplace(std::forward<T>(value));
-                _mutex.unlock();
-                _cv.notify_one();
-                break;
-            } else {
-                std::this_thread::yield();
-            }
+        std::unique_lock<std::mutex> lock(_mutex, std::defer_lock);
+        while (!lock.try_lock()) {
+            std::this_thread::yield();
         }
+        _priority_queue.emplace(std::forward<T>(value));
+        _cv.notify_one();
     }
 
     bool empty()

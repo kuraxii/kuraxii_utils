@@ -16,8 +16,8 @@ using KURAXII_MOVE_FUNCTION_REF = std::function<void()> &&;
 
 #define NO_ALLOWED_COPY_AND_MOVE(Type) \
     NO_ALLOWED_COPY(Type)              \
-    Type(Type &&rhs) = delete;         \
-    Type &operator=(Type &&rhs) = delete;
+    Type(Type &&) = delete;         \
+    Type &operator=(Type &&) = delete;
 
 KURAXII_NAMESPACE_END
 
