@@ -12,7 +12,6 @@
 KURAXII_NAMESPACE_BEGIN
 ThreadPool::ThreadPool() noexcept
 {
-    init();
 }
 
 void ThreadPool::init()
@@ -23,8 +22,6 @@ void ThreadPool::init()
     _threads_primary.reserve(_config.default_thread_size_);
     for (int i = 0; i < _config.default_thread_size_; i++) {
         try {
-            //
-            // new ThreadPrimary(*this, i);
             _threads_primary.emplace_back(std::make_unique<ThreadPrimary>(*this, i));
         }
         catch (const std::exception &e) {
@@ -33,7 +30,7 @@ void ThreadPool::init()
         }
     }
     _is_init = true;
-    std::cout << "poll init" << std::endl;
+    _is_allow_steal = true;
 }
 
 void ThreadPool::addTask(Task &&task)
@@ -42,13 +39,14 @@ void ThreadPool::addTask(Task &&task)
         _pool_priority_task_queue.push(std::move(task));
     } else {
         INT index = dispatch(_cur_index);
+
         if (index < _config.default_thread_size_) {
             _threads_primary[index]->pushTask(std::move(task));
+
         } else {
             _pool_task_queue.push(std::move(task));
         }
     }
-    std::cout << "addtask succ\n" << std::endl;
 }
 
 void ThreadPool::addTask(TaskGroup &&tasks)
@@ -60,8 +58,10 @@ void ThreadPool::addTask(TaskGroup &&tasks)
 
 void ThreadPool::destroy()
 {
-    for (auto &thread : _threads_primary) {
-        thread->destory();
+    if (_is_init) {
+        for (auto &thread : _threads_primary) {
+            thread->destory();
+        }
     }
 }
 
@@ -75,9 +75,17 @@ INT ThreadPool::dispatch(INT &index)
     return realIndex;
 }
 
+bool ThreadPool::isInit() const
+{
+    return _is_init;
+}
+
 ThreadPool::~ThreadPool()
 {
+    LOG_MESSAGE("");
+    _is_allow_steal = false;
     destroy();
+    LOG_MESSAGE("");
 }
 
 ThreadPrimary::ThreadPrimary(ThreadPrimary &&other) noexcept
@@ -99,7 +107,7 @@ ThreadPrimary &ThreadPrimary::operator=(ThreadPrimary &&other) noexcept
         _pool_threads = other._pool_threads;
         _pool_task_queue = other._pool_task_queue;
         _pool_priority_task_queue = other._pool_priority_task_queue;
-
+   
         other._pool_config = nullptr;
         other._pool_threads = nullptr;
         other._pool_task_queue = nullptr;
@@ -109,8 +117,9 @@ ThreadPrimary &ThreadPrimary::operator=(ThreadPrimary &&other) noexcept
 }
 
 ThreadPrimary::ThreadPrimary(ThreadPool &pool, INT index)
-    : _index(index), _pool_config(pool.getThreadPoolConfig()), _pool_threads(pool.getThreads()),
-      _pool_task_queue(pool.getPoolTaskQueue()), _pool_priority_task_queue(pool.getPoolPriorityTaskQueue())
+    : _index(index), _pool_is_allow_steal(pool.getIsAllowSteal()), _pool_config(pool.getThreadPoolConfig()),
+      _pool_threads(pool.getThreads()), _pool_task_queue(pool.getPoolTaskQueue()),
+      _pool_priority_task_queue(pool.getPoolPriorityTaskQueue())
 {
     init();
 }
@@ -118,18 +127,10 @@ ThreadPrimary::ThreadPrimary(ThreadPool &pool, INT index)
 void ThreadPrimary::init()
 {
     // 确保线程池完全启动
-    std::cout << "Initializing thread " << _index << std::endl;
-    try {
-        _thread = std::thread(&ThreadPrimary::loopThread, this);
-    }
-    catch (const std::exception &e) {
-        std::cerr << "Failed to create thread: " << e.what() << std::endl;
-        throw;
-    }
-    _is_init = true;
     _done = false;
+    _thread = std::thread(&ThreadPrimary::loopThread, this);
     setStealTargets(_index);
-    std::cout << "Thread " << _index << " initialized" << std::endl;
+    _is_init = true;
 }
 
 void ThreadPrimary::processTask()
@@ -167,11 +168,16 @@ bool ThreadPrimary::stealTask(std::vector<Task> &tasks, UINT taskNum)
 {
     bool result = false;
 
-    for (auto &target : _steal_targets) {
-        if ((*_pool_threads)[target] && (*_pool_threads)[target]->isThreadCreated()) {
-            result = (*_pool_threads)[target]->trySteal(tasks);
+    // 等待线程池初始化完成再steal
+    if (*_pool_is_allow_steal) {
+        for (auto &target : _steal_targets) {
+            // std::cout << "_pool_is_init:" << _pool_is_init << " target: " << target << std::endl;
+            if ((*_pool_threads)[target] && (*_pool_threads)[target]->isThreadCreated()) {
+                result = (*_pool_threads)[target]->trySteal(tasks);
+            }
         }
     }
+
     return result;
 }
 

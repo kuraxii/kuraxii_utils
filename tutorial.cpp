@@ -67,10 +67,10 @@ int main()
 #else
 
     KURAXII::ThreadPool pool{};
+    pool.init();
     KURAXII::Task t1 = {std::move(std::bind(func, 1, 2))};
     pool.addTask(std::move(t1));
-
-    sleep(1);
+    // sleep(1);
 #endif
     return 0;
 }

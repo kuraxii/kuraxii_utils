@@ -37,24 +37,15 @@ public:
     WorkStealingQueue() = default;
     ~WorkStealingQueue() = default;
     NO_ALLOWED_COPY(WorkStealingQueue)
+
     // 插入队列
-    void push(T &task)
+    template <typename U>
+    void push(U &&task)
     {
+        static_assert(std::is_convertible<U, T>::value, "Task type must be convertible to queue element type");
         while (true) {
             if (_lock.try_lock()) {
-                _deque.emplace_back(std::forward<T>(task));
-                _lock.unlock();
-                break;
-            } else {
-                std::this_thread::yield();
-            }
-        }
-    }
-    void push(T &&task)
-    {
-        while (true) {
-            if (_lock.try_lock()) {
-                _deque.emplace_back(std::forward<T>(task));
+                _deque.emplace_back(std::forward<U>(task));
                 _lock.unlock();
                 break;
             } else {
@@ -79,29 +70,17 @@ public:
         }
     }
 
-    // 尝试插入队列
-    bool tryPush(T &task)
+    // // 尝试插入队列
+    template <typename U>
+    bool tryPush(U &&task)
     {
-        std::cout << "trypush" << &task << std::endl;
+        static_assert(std::is_convertible<U, T>::value, "Task type must be convertible to queue element type");
         bool result = false;
         if (_lock.try_lock()) {
-            _deque.emplace_back(std::forward<T>(task));
+            _deque.emplace_back(std::forward<U>(task)); // Perfect forwarding
             _lock.unlock();
             result = true;
         }
-
-        return result;
-    }
-    bool tryPush(T &&task)
-    {
-        std::cout << "trypush" << &task << std::endl;
-        bool result = false;
-        if (_lock.try_lock()) {
-            _deque.emplace_back(std::forward<T>(task));
-            _lock.unlock();
-            result = true;
-        }
-
         return result;
     }
     // 尝试插入一组信息

@@ -19,9 +19,9 @@ public:
     }
     virtual void init()
     {
+        _done = false;
         _thread = std::move(std::thread{std::bind(&ThreadObject::loopThread, this)});
         _is_init = true;
-        _done = false;
     }
 
     virtual void processTask()
@@ -43,9 +43,11 @@ public:
 
     virtual void loopThread()
     {
+        // std::cout << "ThreadPrimary::loopThread _done: " << _done << std::endl;
         while (!_done) {
             processTask();
         }
+        // std::cout << "*************thread exit" << std::endl;
     }
 
     void runTask(std::vector<Task> &tasks)
@@ -78,7 +80,7 @@ public:
 
     virtual void pushTask(Task &&task)
     {
-        while (!(_normal_task_queue.tryPush(std::move(task)) || !_primary_task_queue.tryPush(std::move(task)))) {
+        while (!(_normal_task_queue.tryPush(std::move(task)) || _primary_task_queue.tryPush(std::move(task)))) {
             std::this_thread::yield();
         }
         _cv.notify_one();

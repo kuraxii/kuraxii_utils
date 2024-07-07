@@ -31,6 +31,7 @@ private:
     std::vector<INT> _steal_targets; // 盗取目标
 
     // 线程池属性
+    bool *_pool_is_allow_steal = nullptr;
     ThreadPoolConfig *_pool_config = nullptr;
     std::vector<std::unique_ptr<ThreadPrimary>> *_pool_threads = nullptr;
     AtomicQueue<Task> *_pool_task_queue = nullptr;
@@ -40,15 +41,11 @@ private:
 class ThreadPool : Object {
 public:
     explicit ThreadPool() noexcept;
-
-    /**
-     * 析构函数
-     */
     ~ThreadPool();
     /**
      * 初始化函数
      */
-
+    void init();
     void addTask(Task &&task);
     void addTask(TaskGroup &&tasks);
 
@@ -61,19 +58,20 @@ public:
     inline AtomicQueue<Task>* getPoolTaskQueue() { return &_pool_task_queue; }
     inline AtomicPriorityQueue<Task>* getPoolPriorityTaskQueue() { return &_pool_priority_task_queue; }
     inline ThreadPoolConfig* getThreadPoolConfig() { return &_config; }
+    inline bool* getIsAllowSteal() { return &_is_allow_steal; }
     //clang-format on
 
     NO_ALLOWED_COPY_AND_MOVE(ThreadPool)
 
 private:
     INT dispatch(INT &index);
-    void init();
+   
 
 private:
     INT _cur_index = 0;
  
     bool _is_init = false;
-
+    bool _is_allow_steal = false;
     ThreadPoolConfig _config;
     // 主线程执行短任务
     std::vector<std::unique_ptr<ThreadPrimary>> _threads_primary;
