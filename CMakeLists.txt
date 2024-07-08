@@ -13,6 +13,5 @@ include_directories(./src)
 add_subdirectory(src)
 add_subdirectory(test)
 
-add_executable(tutorial
-        tutorial.cpp)
+add_executable(tutorial tutorial.cpp)
 target_link_libraries(tutorial kuraxii_utils_static pthread)

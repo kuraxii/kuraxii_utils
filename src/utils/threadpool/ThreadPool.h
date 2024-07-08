@@ -65,7 +65,6 @@ public:
 
 private:
     INT dispatch(INT &index);
-   
 
 private:
     INT _cur_index = 0;

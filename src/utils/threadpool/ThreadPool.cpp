@@ -35,6 +35,9 @@ void ThreadPool::init()
 
 void ThreadPool::addTask(Task &&task)
 {
+    if (!_is_init) {
+        return;
+    }
     if (task.getPriority() > 0) {
         _pool_priority_task_queue.push(std::move(task));
     } else {
@@ -51,6 +54,9 @@ void ThreadPool::addTask(Task &&task)
 
 void ThreadPool::addTask(TaskGroup &&tasks)
 {
+    if (!_is_init) {
+        return;
+    }
     for (auto &task : tasks.getTasks()) {
         addTask(std::move(task));
     }
@@ -62,6 +68,7 @@ void ThreadPool::destroy()
         for (auto &thread : _threads_primary) {
             thread->destory();
         }
+        _is_init = false;
     }
 }
 
@@ -82,10 +89,8 @@ bool ThreadPool::isInit() const
 
 ThreadPool::~ThreadPool()
 {
-    LOG_MESSAGE("");
     _is_allow_steal = false;
     destroy();
-    LOG_MESSAGE("");
 }
 
 ThreadPrimary::ThreadPrimary(ThreadPrimary &&other) noexcept
@@ -107,7 +112,7 @@ ThreadPrimary &ThreadPrimary::operator=(ThreadPrimary &&other) noexcept
         _pool_threads = other._pool_threads;
         _pool_task_queue = other._pool_task_queue;
         _pool_priority_task_queue = other._pool_priority_task_queue;
-   
+
         other._pool_config = nullptr;
         other._pool_threads = nullptr;
         other._pool_task_queue = nullptr;
@@ -155,12 +160,14 @@ void ThreadPrimary::processTask()
 
 bool ThreadPrimary::popPoolTask(std::vector<Task> &tasks, UINT taskNum)
 {
+
     // 优先从优先队列中取出
     bool result = (*_pool_priority_task_queue).tryPop(tasks, taskNum);
     INT size = taskNum - tasks.size();
     if (size > 0) {
         result |= _normal_task_queue.tryPop(tasks, size);
     }
+
     return result;
 }
 

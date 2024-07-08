@@ -19,22 +19,31 @@ public:
         : _func(std::move(_func)), _priority(_priority), valid(true)
     {
     }
+    ~Task()
+    {
+    }
 
     // 移动构造
     Task(Task &&other) noexcept : _func(std::move(other._func)), _priority(other._priority), valid(true)
     {
+        // std::cout << "Task moved from " << &other << " to " << this << std::endl;
         assert(other.valid == true);
+
         other.valid = false;
+        // valid = true;
     }
 
     // 移动赋值运算符
     Task &operator=(Task &&other) noexcept
     {
+        // std::cout << "Task assigned from " << &other << " to " << this << std::endl;
         assert(other.valid == true);
         if (&other != this) {
+
             _func = std::move(other._func);
             _priority = other._priority;
             other.valid = false;
+            valid = true;
         }
         return *this;
     }
@@ -61,7 +70,7 @@ public:
 private:
     std::function<void()> _func;
     INT _priority;
-    bool valid = true;
+    bool valid;
 };
 
 KURAXII_NAMESPACE_END

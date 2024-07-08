@@ -16,7 +16,7 @@ public:
     {
         std::unique_lock<std::mutex> lock(_mutex);
         _cv.wait(lock, [this] { return !_priority_queue.empty(); });
-        value = std::move(_priority_queue.top());
+        value = std::move(const_cast<T &>(_priority_queue.top()));
         _priority_queue.pop();
     }
 
@@ -26,7 +26,7 @@ public:
         if (!lock.owns_lock() || _priority_queue.empty()) {
             return false;
         }
-        value = std::move(_priority_queue.top());
+        value = std::move(const_cast<T &>(_priority_queue.top()));
         _priority_queue.pop();
         return true;
     }
@@ -34,6 +34,7 @@ public:
 
     bool tryPop(std::vector<T> &values, int maxPoolBatchSize)
     {
+
         std::unique_lock<std::mutex> lock(_mutex, std::try_to_lock);
         if (!lock.owns_lock())
             return false;
@@ -47,17 +48,20 @@ public:
             values.emplace_back(std::move(const_cast<T &>(_priority_queue.top())));
             _priority_queue.pop();
         }
+
         return !values.empty();
     }
-
-    void push(T &&value)
+    template <typename U>
+    void push(U &&value)
     {
+        static_assert(std::is_convertible<U, T>::value, "Task type must be convertible to queue element type");
         std::unique_lock<std::mutex> lock(_mutex, std::defer_lock);
         while (!lock.try_lock()) {
             std::this_thread::yield();
         }
-        _priority_queue.emplace(std::forward<T>(value));
+        _priority_queue.emplace(std::forward<U>(value));
         _cv.notify_one();
+        
     }
 
     bool empty()
