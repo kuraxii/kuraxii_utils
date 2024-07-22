@@ -3,7 +3,7 @@
 
 #include <queue>
 #include <thread>
-#include <basic/BasicInclude.h>
+#include "../../basic/BasicInclude.h"
 
 #include "QueueObject.h"
 KURAXII_NAMESPACE_BEGIN
@@ -62,7 +62,7 @@ public:
 
     void push(T &&value)
     {
-      
+
         while (true) {
             if (_mutex.try_lock()) {
                 _queue.emplace(std::forward<T>(value));
@@ -73,7 +73,6 @@ public:
                 std::this_thread::yield();
             }
         }
-    
     }
 
     void push(std::vector<T> &values)

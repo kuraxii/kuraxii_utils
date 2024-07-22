@@ -2,7 +2,7 @@
 #define _ATMOICPRIORITYQUEUE_H
 #include <queue>
 #include <thread>
-#include <basic/BasicInclude.h>
+#include "../../basic/BasicInclude.h"
 #include "QueueObject.h"
 KURAXII_NAMESPACE_BEGIN
 
@@ -61,7 +61,6 @@ public:
         }
         _priority_queue.emplace(std::forward<U>(value));
         _cv.notify_one();
-        
     }
 
     bool empty()

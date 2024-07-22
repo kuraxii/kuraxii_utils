@@ -1,12 +1,12 @@
 #ifndef _THREADOBJECT_H
 #define _THREADOBJECT_H
 
-#include <basic/BasicInclude.h>
-#include <utils/queue/WorkStealingQueue.h>
-#include <utils/task/task.h>
-#include <utils/task/taskgroup.h>
-#include "ThreadConfig.h"
 #include <mutex>
+#include "../../basic/BasicInclude.h"
+#include "../queue/WorkStealingQueue.h"
+#include "../task/task.h"
+#include "../task/taskgroup.h"
+#include "ThreadConfig.h"
 KURAXII_NAMESPACE_BEGIN
 
 class ThreadObject : Object {

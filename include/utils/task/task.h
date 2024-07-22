@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <functional>
-#include <basic/BasicInclude.h>
+#include "../../basic/BasicInclude.h"
 
 /*
     所有的task只可移动 不可复制
@@ -16,27 +16,24 @@ static const INT DEFAULT_PROORITY = 0;
 class Task : public Object {
 public:
     Task(KURAXII_MOVE_FUNCTION_REF _func, INT _priority = DEFAULT_PROORITY)
-        : _func(std::move(_func)), _priority(_priority), valid(true)
+        : _func(_func), _priority(_priority), valid(true)
     {
     }
     ~Task()
     {
     }
+    Task(const Task &) = default;
 
     // 移动构造
     Task(Task &&other) noexcept : _func(std::move(other._func)), _priority(other._priority), valid(true)
     {
-        // std::cout << "Task moved from " << &other << " to " << this << std::endl;
         assert(other.valid == true);
-
         other.valid = false;
-        // valid = true;
     }
 
     // 移动赋值运算符
     Task &operator=(Task &&other) noexcept
     {
-        // std::cout << "Task assigned from " << &other << " to " << this << std::endl;
         assert(other.valid == true);
         if (&other != this) {
 
@@ -63,9 +60,6 @@ public:
     // clang-format off
     inline UINT getPriority() const { return _priority; }
     // clang-format on
-
-    // 删除拷贝和复制构造
-    NO_ALLOWED_COPY(Task)
 
 private:
     std::function<void()> _func;

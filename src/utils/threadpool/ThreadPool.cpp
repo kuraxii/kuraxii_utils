@@ -6,12 +6,13 @@
  * @Descript:
  */
 
-#include "ThreadPool.h"
+#include "utils/threadpool/ThreadPool.h"
 #include <basic/BasicInclude.h>
 #include <memory>
 KURAXII_NAMESPACE_BEGIN
 ThreadPool::ThreadPool() noexcept
 {
+    
 }
 
 void ThreadPool::init()
@@ -33,13 +34,13 @@ void ThreadPool::init()
     _is_allow_steal = true;
 }
 
-void ThreadPool::addTask(Task &&task)
+void ThreadPool::addTask(Task &task)
 {
     if (!_is_init) {
         return;
     }
     if (task.getPriority() > 0) {
-        _pool_priority_task_queue.push(std::move(task));
+        _pool_priority_task_queue.push(task);
     } else {
         INT index = dispatch(_cur_index);
 
@@ -47,18 +48,18 @@ void ThreadPool::addTask(Task &&task)
             _threads_primary[index]->pushTask(std::move(task));
 
         } else {
-            _pool_task_queue.push(std::move(task));
+            _pool_task_queue.push(task);
         }
     }
 }
 
-void ThreadPool::addTask(TaskGroup &&tasks)
+void ThreadPool::addTask(TaskGroup &tasks)
 {
     if (!_is_init) {
         return;
     }
     for (auto &task : tasks.getTasks()) {
-        addTask(std::move(task));
+        addTask(task);
     }
 }
 

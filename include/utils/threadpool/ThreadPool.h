@@ -1,12 +1,11 @@
 #ifndef _THREADPOOL_H
 #define _THREADPOOL_H
-#include <basic/BasicInclude.h>
-#include <utils/task/task.h>
-#include <future>
+#include "../../basic/BasicInclude.h"
+#include "../task/task.h"
 #include "ThreadPoolConfig.h"
-#include <utils/queue/AtomicQueue.h>
-#include <utils/queue/AtomicPriorityQueue.h>
-#include <utils/thread/ThreadObject.h>
+#include "../queue/AtomicQueue.h"
+#include "../queue/AtomicPriorityQueue.h"
+#include "../thread/ThreadObject.h"
 KURAXII_NAMESPACE_BEGIN
 
 class ThreadPool;
@@ -18,6 +17,7 @@ public:
     ThreadPrimary(ThreadPrimary &&other) noexcept;            // 移动构造函数
     ThreadPrimary &operator=(ThreadPrimary &&other) noexcept; // 移动赋值操作符
     NO_ALLOWED_COPY(ThreadPrimary)
+
     virtual void init() override;
     void processTask() override;
 
@@ -46,8 +46,8 @@ public:
      * 初始化函数
      */
     void init();
-    void addTask(Task &&task);
-    void addTask(TaskGroup &&tasks);
+    void addTask(Task &task);
+    void addTask(TaskGroup &tasks);
 
     void destroy();
 

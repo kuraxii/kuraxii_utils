@@ -9,7 +9,7 @@
 #ifndef _THREADCONFIG_H
 #define _THREADCONFIG_H
 
-#include <basic/BasicInclude.h>
+#include "../../basic/BasicInclude.h"
 
 KURAXII_NAMESPACE_BEGIN
 

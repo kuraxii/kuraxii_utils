@@ -9,8 +9,8 @@
 #ifndef _THREADPOOLCONFIG_H
 #define _THREADPOOLCONFIG_H
 #include <algorithm>
-#include <basic/BasicInclude.h>
 #include <thread>
+#include "../../basic/BasicInclude.h"
 KURAXII_NAMESPACE_BEGIN
 
 static const UINT HARDWARE_CONCURRENCY = std::thread::hardware_concurrency();

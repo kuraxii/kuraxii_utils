@@ -32,7 +32,7 @@ TEST_F(ThreadPoolTest, AddSingleTask)
 
     KURAXII::Task task([&counter]() { counter++; });
 
-    threadPool.addTask(std::move(task));
+    threadPool.addTask(task);
 
     // Give some time for the task to execute
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -50,7 +50,7 @@ TEST_F(ThreadPoolTest, AddMultipleTasks)
         tasks.addTask(KURAXII::Task([&counter]() { counter++; }));
     }
 
-    threadPool.addTask(std::move(tasks));
+    threadPool.addTask(tasks);
 
     // Give some time for all tasks to execute
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -66,8 +66,8 @@ TEST_F(ThreadPoolTest, TaskWithPriority)
 
     KURAXII::Task lowPriorityTask([&counter]() { counter++; });
 
-    threadPool.addTask(std::move(lowPriorityTask));
-    threadPool.addTask(std::move(highPriorityTask));
+    threadPool.addTask(lowPriorityTask);
+    threadPool.addTask(highPriorityTask);
 
     // Give some time for tasks to execute
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -83,7 +83,7 @@ TEST_F(ThreadPoolTest, AddTaskToUninitializedThreadPool)
     KURAXII::Task task([&counter]() { counter++; });
 
     // This should not add the task since the thread pool is not initialized
-    newThreadPool.addTask(std::move(task));
+    newThreadPool.addTask(task);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -105,7 +105,7 @@ TEST_F(ThreadPoolTest, AddTaskToDestroyedThreadPool)
     KURAXII::Task task([&counter]() { counter++; });
 
     // This should not add the task since the thread pool is destroyed
-    threadPool.addTask(std::move(task));
+    threadPool.addTask(task);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -133,12 +133,12 @@ TEST_F(ThreadPoolTest, StealTask)
         tasks.addTask(KURAXII::Task([&counter]() { counter++; }));
     }
 
-    threadPool.addTask(std::move(tasks));
+    threadPool.addTask(tasks);
 
     // Artificially simulate task stealing
     for (int i = 0; i < taskCount; i++) {
         KURAXII::Task stealTask([&counter]() { counter++; });
-        threadPool.addTask(std::move(stealTask));
+        threadPool.addTask(stealTask);
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));

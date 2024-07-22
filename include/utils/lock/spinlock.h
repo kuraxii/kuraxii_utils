@@ -3,7 +3,7 @@
 
 #include <atomic>
 #include <thread>
-#include <basic/BasicInclude.h>
+#include "../../basic/BasicInclude.h"
 
 KURAXII_NAMESPACE_BEGIN
 

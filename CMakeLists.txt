@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 
-file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h" "test/*cpp")
-include_directories(./src)
+file(GLOB_RECURSE SOURCES "src/*.cpp" "include/*.h" "test/*cpp")
+include_directories(./include)
 
 
 add_subdirectory(src)

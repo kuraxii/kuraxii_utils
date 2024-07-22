@@ -11,13 +11,13 @@
 
 #include <iostream>
 #include <deque>
-#include <basic/BasicInclude.h>
 #include <mutex>
 #include <thread>
 #include <utility>
 #include <vector>
 #include "QueueObject.h"
-#include "basic/funcdef.h"
+#include "../../basic/BasicInclude.h"
+#include "../../basic/funcdef.h"
 
 /*
 保证任务尽量按插入顺序执行

@@ -2,7 +2,7 @@
 #define _TASKGROUP_H
 
 #include <vector>
-#include <basic/BasicInclude.h>
+#include "../../basic/BasicInclude.h"
 #include "task.h"
 
 KURAXII_NAMESPACE_BEGIN
