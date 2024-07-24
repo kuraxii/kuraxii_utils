@@ -1,3 +1,10 @@
+/*********************************************
+ * @FileName: spinlock.h
+ * @Author: kuraxii
+ * @Mail: zj.zhu.cn@gmail.com
+ * @CreatedTime: 周二 7月 23 10:37:30 2024
+ * @Descript: 自旋锁
+ */
 #ifndef _SPINLOCK_H
 #define _SPINLOCK_H
 
@@ -7,8 +14,8 @@
 
 KURAXII_NAMESPACE_BEGIN
 
-class SpinLock : public Object {
-
+class SpinLock {
+public:
     void lock()
     {
         // lock后面的是临界资源，不能
